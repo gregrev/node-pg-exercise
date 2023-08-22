@@ -43,9 +43,24 @@ router.put('/:id', async (req, res, next) => {
     try {
         // deconstruct and get the code, name, values from req.body
         const { id } = req.params
-        const { amt, paid, paid_date } = req.body;
+        const { amt, paid } = req.body;
+
+        // value for the paid date
+        let paid_date = null;
+        if (paid === true) {
+            paid_date = new Date();
+        }
+
+
         // Update db with sql query and use Parameterized Queries 1$, $2...
-        const results = await db.query(`UPDATE invoices SET amt=$2, paid=$3, paid_date=$4 WHERE id=$1 RETURNING id, comp_code, amt, paid, add_date, paid_date`, [id, amt, paid, paid_date])
+        const results = await db.query(
+            `
+            UPDATE invoices
+            SET amt=$2, paid=$3, paid_date=$4 
+            WHERE id=$1 
+            RETURNING id, comp_code, amt, paid, add_date, paid_date
+            `, [id, amt, paid, paid_date])
+
         if (results.rows.length === 0) {
             throw new ExpressError(`Invoice with id of ${id}, not found`, 404)
         }
